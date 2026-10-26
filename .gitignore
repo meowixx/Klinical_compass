@@ -1,0 +1,49 @@
+# Secrets and local configuration
+.env
+.env.local
+BotMax/*
+!BotMax/.gitkeep
+config/ai_runtime.local.json
+
+# Python
+.venv/
+.venv-training/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local data and runtime state
+*.db
+data/*
+!data/.gitkeep
+logs/
+.run/
+tmp/
+
+# Model training artifacts
+training/cache/
+training/runs/
+training/logs/
+
+# Frontend build and test output
+clinical-compass/node_modules/
+clinical-compass/.next/
+clinical-compass/out/
+clinical-compass/.audit-next/
+clinical-compass/audit-results/
+clinical-compass/test-results/
+clinical-compass/playwright-report/
+clinical-compass/.playwright-mcp/
+
+# Archives
+*.tar.gz
+
+# IDE and tool settings
+.idea/
+.vscode/
+.codex/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

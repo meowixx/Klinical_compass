@@ -1,0 +1,15 @@
+{
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+  "dataset": "datasets/clinical_compass_qwen_v6",
+  "maxSequenceLength": 1536,
+  "epochs": 2,
+  "learningRate": 0.00005,
+  "gradientAccumulationSteps": 8,
+  "loraRank": 8,
+  "loraAlpha": 16,
+  "loraDropout": 0.05,
+  "targetModules": ["q_proj", "v_proj"],
+  "seed": 42,
+  "minimumFreeVramMiB": 4600
+}

@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "checks": 1749,
+  "examples": 82,
+  "errors": [],
+  "warnings": [],
+  "splitCounts": {
+    "train": 52,
+    "validation": 12,
+    "test": 18
+  },
+  "patientAndFamilyLeakage": false,
+  "clinicalApproval": false,
+  "trainingPerformed": false,
+  "limitations": [
+    "Structural checks cannot establish clinical correctness, source applicability or model safety.",
+    "Small authored holdout measures regression behavior, not real-world clinical performance."
+  ]
+}

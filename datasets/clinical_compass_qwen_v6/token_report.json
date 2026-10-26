@@ -1,0 +1,32 @@
+{
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+  "tokenizerSha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+  "chatTemplate": "official tokenizer_config.json, add_generation_prompt=False",
+  "includesSystemUserAssistant": true,
+  "count": 82,
+  "contextLimit": 4096,
+  "maxTokens": 1262,
+  "truncatedExamples": 0,
+  "allFit": true,
+  "splits": {
+    "train": {
+      "min": 757,
+      "max": 1257,
+      "mean": 1039.2,
+      "total": 54041
+    },
+    "validation": {
+      "min": 813,
+      "max": 1228,
+      "mean": 1056.3,
+      "total": 12676
+    },
+    "test": {
+      "min": 918,
+      "max": 1262,
+      "mean": 1031.3,
+      "total": 18564
+    }
+  }
+}

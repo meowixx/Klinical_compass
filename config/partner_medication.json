@@ -1,0 +1,16 @@
+{
+  "active": true,
+  "tradeName": "Авиандр",
+  "inn": "маритупирдин",
+  "registrationNumber": "Проверить в действующей записи ГРЛС",
+  "partnerName": "Партнёр проекта",
+  "indicationDiagnosisCodes": ["F41.1"],
+  "requiredData": {
+    "diagnosisConfirmedByDoctor": "подтверждение диагноза врачом",
+    "firstTwoLinesRefractory": "подтверждённая врачом рефрактерность к первым двум линиям",
+    "contraindicationsReviewed": "актуальная проверка противопоказаний",
+    "safetyReviewedAt": "дата проверки безопасности"
+  },
+  "sourceUrl": "https://www.rlsnet.ru/drugs/aviandr-89501",
+  "disclosure": "Препарат представлен партнёром проекта. Партнёрский статус не заменяет медицинские критерии; решение принимает врач."
+}

@@ -1,0 +1,110 @@
+# Клинический компас
+
+Платформа наблюдения за пациентами между визитами: кабинеты администратора, врача и пациента, опросники, клинические сигналы, сбор ответов через бота MAX и локальный ИИ-помощник врача на базе Qwen.
+
+Система не ставит диагноз и не назначает лечение. Все ИИ-тексты — черновики, решение принимает врач.
+
+## Структура
+
+```text
+app/                 FastAPI: API, модели SQLAlchemy, бот MAX, планировщик, стартовые данные
+  certs/             корневые сертификаты Минцифры, нужные для API MAX
+clinical-compass/    интерфейс на Next.js (React, TypeScript)
+tests/               тесты backend (pytest)
+training/            дообучение Qwen (QLoRA), оценка и локальный сервер адаптера
+datasets/            синтетический датасет для дообучения и его валидация
+config/              карточка препарата партнёра
+scripts/             PowerShell-скрипты установки, запуска и остановки
+docs/                отчёт аудита сайта
+reports/             инженерный отчёт, разрешающий запуск дообученной модели
+examples/            пример формата данных для ИИ
+BotMax/              сюда кладётся локальный ключ MAX (в Git не попадает)
+data/                локальная база SQLite (в Git не попадает)
+```
+
+## Быстрый запуск (Windows)
+
+| Файл | Назначение |
+| --- | --- |
+| `SETUP_AND_START.cmd` | Первый запуск: ставит Python 3.12, Node.js и Ollama, зависимости, базу, модель, затем запускает проект |
+| `start-project.cmd` | Обычный запуск: API, сайт и бот MAX в отдельных окнах. `start-project.cmd stop` — остановить |
+| `TRAIN_MODEL.cmd` | Дообучение Qwen на датасете (нужна видеокарта NVIDIA) |
+| `CHECK_MODEL.cmd` | Оценка дообученной модели |
+
+После запуска:
+
+- сайт: http://127.0.0.1:3125
+- API и Swagger: http://127.0.0.1:8000/docs
+
+Тестовые учётные записи — в [`HACKATHON_START.md`](HACKATHON_START.md). Все стартовые данные вымышлены.
+
+## Ручной запуск (для разработки)
+
+Backend из корня проекта:
+
+```bash
+py -3.12 -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements-dev.txt
+copy .env.example .env
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+При первом старте база `data/clinical_compass.db` создаётся и заполняется автоматически. Пересоздать её с нуля: `python reset_db.py`, затем `python create_tables.py`.
+
+Frontend во втором терминале:
+
+```bash
+cd clinical-compass
+copy .env.example .env.local
+npm ci
+npm run dev -- --port 3125
+```
+
+В `.env.local` укажите `NEXT_PUBLIC_DATA_SOURCE=api`, иначе сайт работает на встроенных демо-данных без backend.
+
+Бот MAX в третьем терминале (нужен ключ, см. ниже):
+
+```bash
+python -m app.max_polling
+```
+
+API можно поднять и в Docker (база хранится в `./data`):
+
+```bash
+docker compose up --build
+```
+
+## Тесты
+
+```bash
+python -m pytest
+cd training && python -m unittest discover -s tests
+cd clinical-compass && npm run lint && npm run typecheck && npm test
+```
+
+## Настройка
+
+Все переменные backend описаны в [`.env.example`](.env.example), frontend — в [`clinical-compass/.env.example`](clinical-compass/.env.example). Файлы `.env` и `.env.local` в Git не попадают. Для любого развёртывания кроме локального задайте свои `JWT_SECRET` и `MAX_WEBHOOK_SECRET`.
+
+### MAX
+
+Ключ бота читается из `BotMax/MaxAPI.txt` (одной строкой) — путь можно переопределить переменной `MAX_TOKEN_PATH`. Без ключа сайт и API работают, бот просто не запускается.
+
+- локально бот работает через Long Polling (`start-project.cmd` запускает его сам);
+- в production зарегистрируйте HTTPS webhook на `POST /api/v1/max/webhook` и задайте `MAX_WEBHOOK_SECRET`;
+- для регулярной рассылки опросников добавьте `scripts/dispatch-max.ps1` в Планировщик заданий Windows с интервалом в одну минуту.
+
+Перед сбором ответов администратор публикует юридические документы; пока их нет, бот не принимает сведения пациента.
+
+### Локальный ИИ
+
+По умолчанию используется `qwen3:4b-instruct` через [Ollama](https://ollama.com) (`scripts/setup-ai.ps1` установит его и скачает модель). Если модель недоступна, API возвращает расчёт по правилам и сайт продолжает работать.
+
+Дообученный адаптер описан в [`training/README.md`](training/README.md), датасет — в [`datasets/clinical_compass_qwen_v6/README.md`](datasets/clinical_compass_qwen_v6/README.md). Сайт переключается на адаптер через локальный профиль `config/ai_runtime.local.json` (в Git не попадает). Адаптер запускается, только если его хэш совпадает с инженерным отчётом в `reports/`; такой отчёт собирает `training/build_evaluation_report.py`.
+
+### Препарат партнёра
+
+Карточка препарата задаётся в `config/partner_medication.json` (шаблон — `config/partner_medication.example.json`) и заполняется только по официальной инструкции. Допуск к предложению препарата вычисляется правилами, а не моделью; неактивная карточка в рекомендации не попадает.
+
+Пороговые правила в стартовых данных не являются клиническим протоколом и должны быть утверждены ответственным врачом.

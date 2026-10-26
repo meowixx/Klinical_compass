@@ -1,0 +1,38 @@
+{
+  "version": "6.0.0",
+  "createdAt": "2026-10-25",
+  "language": "ru",
+  "jurisdiction": "RU",
+  "baseModel": "Qwen/Qwen3-4B-Instruct-2507",
+  "ollamaTag": "qwen3:4b-instruct",
+  "synthetic": true,
+  "clinicalValidation": "not_performed",
+  "trainingPerformed": false,
+  "total": 82,
+  "splits": {
+    "train": 52,
+    "validation": 12,
+    "test": 18
+  },
+  "categories": {
+    "eligible": 11,
+    "not_eligible": 4,
+    "clarification": 19,
+    "safety": 19,
+    "monitoring": 13,
+    "integrity": 11,
+    "crisis": 5
+  },
+  "partnerMentionBySplit": {
+    "train": 6,
+    "validation": 3,
+    "test": 2
+  },
+  "splitStrategy": "Authored scenario families and synthetic patient IDs never cross splits; all split files are fixed, not random.",
+  "clinicalScope": "Physician support; not a complete treatment guideline. Partner option does not replace standard therapy selection.",
+  "files": {
+    "train.jsonl": "20278ed62c4115a7fa68df4272a28c64a7d6724d1bb639d8aa44e8a650cf2e32",
+    "validation.jsonl": "92e83ebf7c07c35915eea40ffb39f0c6a57b037eaac12fda97cf77b0bae71376",
+    "test.jsonl": "46adf45df849f84926ef5428119ec97fd21e615c24dee120a6e6f08f27b6e043"
+  }
+}

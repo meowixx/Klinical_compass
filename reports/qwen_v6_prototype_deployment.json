@@ -1,0 +1,12 @@
+{
+  "adapterSha256": "6bd768e0191da09a3b7e116b821dafaaed81170dfc4bfc70bf0f781f3172d920",
+  "engineeringDeploymentApproved": true,
+  "clinicalApproval": false,
+  "scope": "Hackathon prototype. Drafts are shown only to an authenticated clinician and require explicit clinician confirmation.",
+  "decision": "Enabled by the project owner after held-out comparison. Deterministic medication eligibility and output guards remain mandatory.",
+  "knownLimitations": [
+    "The small synthetic dataset does not establish clinical accuracy.",
+    "The model can misread individual fields; the application computes medication eligibility outside the model.",
+    "Generated text is a draft and must not be sent to a patient or treated as a prescription."
+  ]
+}

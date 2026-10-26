@@ -1,0 +1,15 @@
+{
+  "active": false,
+  "tradeName": "Укажите торговое наименование",
+  "inn": "Укажите МНН",
+  "registrationNumber": "Укажите регистрационный номер",
+  "partnerName": "Укажите партнёра",
+  "indicationDiagnosisCodes": ["F00"],
+  "requiredData": {
+    "allergies": "аллергологический анамнез",
+    "currentMedications": "текущая лекарственная терапия",
+    "contraindicationsReviewed": "проверка противопоказаний врачом"
+  },
+  "sourceUrl": "https://grls.rosminzdrav.ru/",
+  "disclosure": "Производитель или поставщик препарата является партнёром платформы. Партнёрский статус не влияет на медицинские критерии."
+}
