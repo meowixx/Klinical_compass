@@ -86,6 +86,9 @@ def ensure_schema() -> None:
         "clinical_alerts": {
             "responsible_doctor_id": "VARCHAR(36)",
         },
+        "ai_recommendations": {
+            "verification_json": "TEXT NOT NULL DEFAULT '{}'",
+        },
     }
     with engine.begin() as connection:
         for table_name, additions in sqlite_columns.items():

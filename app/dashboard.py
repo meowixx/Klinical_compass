@@ -1,3 +1,4 @@
+import json
 from datetime import date, datetime
 
 from sqlalchemy import select
@@ -258,6 +259,7 @@ def build_dashboard(db: Session, doctor_id: str | None = None) -> dict:
                 "risks": row.risks,
                 "limitations": row.limitations,
                 "sourceIds": [x for x in row.source_ids.split(",") if x],
+                "verification": json.loads(row.verification_json or "{}") or None,
                 "createdAt": iso(row.created_at),
                 "status": row.status,
             }

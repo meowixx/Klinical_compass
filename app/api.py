@@ -6,9 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from app.ai_service import ai_status, assess_partner_medication, generate_with_qwen
+from app.ai_service import ai_status, assess_partner_medication, generate_with_qwen, load_partner_medication
 from app.dashboard import adherence_counts, build_dashboard, serialize_patient
 from app.database import get_db
+from app.knowledge_base import verify_draft
 from app.models import (
     AdverseEvent, AiRecommendation, AuditEvent, ClinicalAlert, ClinicalTask,
     DailyCheckin, DoctorSettings, PatientProfile, Prescription, QuestionnaireAssignment, QuestionnaireVersion, User,
@@ -432,27 +433,12 @@ def assign_questionnaire(patient_id: str, payload: AssignmentCreate, user: User 
     }
 
 
-def generate_ai_text(db: Session, patient: PatientProfile, kind: str) -> tuple[str, str, str]:
+def patient_ai_context(db: Session, patient: PatientProfile) -> tuple[dict, list[DailyCheckin], dict, AdverseEvent | None]:
     checkins = db.scalars(
         select(DailyCheckin).where(DailyCheckin.patient_id == patient.id).order_by(DailyCheckin.reported_at.desc()).limit(2)
     ).all()
     counts = adherence_counts(db, patient.id)
     event = db.scalar(select(AdverseEvent).where(AdverseEvent.patient_id == patient.id).order_by(AdverseEvent.started_at.desc()))
-    change = "Недостаточно последовательных записей для сравнения."
-    if len(checkins) > 1:
-        changes = []
-        if checkins[0].anxiety is not None and checkins[1].anxiety is not None:
-            changes.append(f"тревога {checkins[0].anxiety - checkins[1].anxiety:+.2f} балла")
-        if checkins[0].sleep_minutes is not None and checkins[1].sleep_minutes is not None:
-            changes.append(f"сон {checkins[0].sleep_minutes - checkins[1].sleep_minutes:+g} мин")
-        change = "; ".join(changes) + "." if changes else "Нет пар заполненных показателей для сравнения."
-    fallback = (
-        f"Изменения: {change}\n"
-        f"Терапия: подтверждено пациентом {counts['confirmed']} из {counts['planned']}; явные пропуски — {counts['missed']}; нет сведений — {counts['noData']}.\n"
-        f"Переносимость: {event.description if event else 'новых сообщений нет'}.\n"
-        f"Недостающие данные: {'есть приёмы без ответа' if counts['noData'] else 'по отметкам терапии нет'}.\n"
-        f"Для проверки врачом: уточнить переносимость, фактический режим приёма и дальнейший план наблюдения."
-    )
     prescriptions = db.scalars(
         select(Prescription).where(Prescription.patient_id == patient.id, Prescription.status == "active")
     ).all()
@@ -489,6 +475,36 @@ def generate_ai_text(db: Session, patient: PatientProfile, kind: str) -> tuple[s
         "safetyReviewedAt": patient.safety_reviewed_at.isoformat() if getattr(patient, "safety_reviewed_at", None) else None,
         "medicationRestrictions": json.loads(getattr(patient, "medication_restrictions_json", "{}") or "{}"),
     }
+    return context, checkins, counts, event
+
+
+def verify_ai_text(text: str, context: dict) -> dict | None:
+    """Ground the draft in the КР/ГРЛС knowledge base; a missing or broken dataset must not block the draft."""
+    medication = load_partner_medication()
+    aliases = [[medication.get("tradeName", ""), medication.get("inn", "")]] if medication else []
+    try:
+        return verify_draft(text, context, aliases)
+    except (OSError, ValueError, KeyError):
+        return None
+
+
+def generate_ai_text(db: Session, patient: PatientProfile, kind: str) -> tuple[str, str, str, dict | None]:
+    context, checkins, counts, event = patient_ai_context(db, patient)
+    change = "Недостаточно последовательных записей для сравнения."
+    if len(checkins) > 1:
+        changes = []
+        if checkins[0].anxiety is not None and checkins[1].anxiety is not None:
+            changes.append(f"тревога {checkins[0].anxiety - checkins[1].anxiety:+.2f} балла")
+        if checkins[0].sleep_minutes is not None and checkins[1].sleep_minutes is not None:
+            changes.append(f"сон {checkins[0].sleep_minutes - checkins[1].sleep_minutes:+g} мин")
+        change = "; ".join(changes) + "." if changes else "Нет пар заполненных показателей для сравнения."
+    fallback = (
+        f"Изменения: {change}\n"
+        f"Терапия: подтверждено пациентом {counts['confirmed']} из {counts['planned']}; явные пропуски — {counts['missed']}; нет сведений — {counts['noData']}.\n"
+        f"Переносимость: {event.description if event else 'новых сообщений нет'}.\n"
+        f"Недостающие данные: {'есть приёмы без ответа' if counts['noData'] else 'по отметкам терапии нет'}.\n"
+        f"Для проверки врачом: уточнить переносимость, фактический режим приёма и дальнейший план наблюдения."
+    )
     medication = assess_partner_medication(context)
     if kind == "questions":
         fallback = (
@@ -523,12 +539,17 @@ def generate_ai_text(db: Session, patient: PatientProfile, kind: str) -> tuple[s
             f"Результат: {medication['details']}\n"
             f"Раскрытие: {medication['disclosure']}\n\n{text}"
         )
+    verification = verify_ai_text(text, context)
+    check_note = (
+        f" Проверка по базе знаний: ссылок на КР — {len(verification['citations'])}, препаратов в тексте — {len(verification['medications'])}."
+        if verification else " Проверка по базе знаний недоступна."
+    )
     data = (
         f"Самоотчёты: {len(checkins)} последних записи; источник — пациент; "
         f"последняя запись — {checkins[0].reported_at.isoformat() if checkins else 'нет данных'}. "
-        f"Обработка: {model_note}."
+        f"Обработка: {model_note}.{check_note}"
     )
-    return text, data, "Требует самостоятельной проверки врачом. Изменение после назначения терапии не доказывает причинную связь."
+    return text, data, "Требует самостоятельной проверки врачом. Изменение после назначения терапии не доказывает причинную связь.", verification
 
 
 def medication_review_payload(patient: PatientProfile):
@@ -574,7 +595,7 @@ def get_ai_status(_: User = Depends(require_doctor)):
 @router.post("/ai/recommendation")
 def generate_ai(payload: AiRequest, user: User = Depends(require_doctor), db: Session = Depends(get_db)):
     patient = patient_for_clinician(db, payload.patientId, user)
-    text, data, risks = generate_ai_text(db, patient, payload.kind)
+    text, data, risks, verification = generate_ai_text(db, patient, payload.kind)
     item = AiRecommendation(
         id=str(uuid4()),
         patient_id=patient.id,
@@ -584,6 +605,7 @@ def generate_ai(payload: AiRequest, user: User = Depends(require_doctor), db: Se
         risks=risks,
         limitations="Локальный ИИ-черновик. Не является диагнозом или назначением. Медицинские и партнёрские предложения требуют проверки врачом по официальной инструкции.",
         source_ids="doc1,doc2",
+        verification_json=json.dumps(verification or {}, ensure_ascii=False),
     )
     db.add(item)
     audit(db, user.name, "Сформирован структурированный ИИ-черновик", patient.id)
@@ -597,6 +619,7 @@ def generate_ai(payload: AiRequest, user: User = Depends(require_doctor), db: Se
         "risks": item.risks,
         "limitations": item.limitations,
         "sourceIds": item.source_ids.split(","),
+        "verification": verification,
         "createdAt": item.created_at.isoformat(),
         "status": item.status,
     }
@@ -607,10 +630,14 @@ def update_ai(item_id: str, payload: AiUpdate, user: User = Depends(require_doct
     item = db.get(AiRecommendation, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Черновик не найден")
-    patient_for_clinician(db, item.patient_id, user)
+    patient = patient_for_clinician(db, item.patient_id, user)
     if payload.status == "accepted" and not payload.confirmed:
         raise HTTPException(status_code=422, detail="Требуется подтверждение врача")
-    item.text, item.status = payload.text.strip(), payload.status
+    text = payload.text.strip()
+    if text != item.text:
+        # The doctor may add or change a drug while editing; the check must describe the saved text.
+        item.verification_json = json.dumps(verify_ai_text(text, patient_ai_context(db, patient)[0]) or {}, ensure_ascii=False)
+    item.text, item.status = text, payload.status
     audit(db, user.name, f"Статус ИИ-черновика: {payload.status}", item.patient_id)
     db.commit()
 

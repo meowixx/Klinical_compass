@@ -250,6 +250,7 @@ class AiRecommendation(Base):
     risks: Mapped[str] = mapped_column(Text, nullable=False)
     limitations: Mapped[str] = mapped_column(Text, nullable=False)
     source_ids: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    verification_json: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=now, nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="draft", nullable=False)
 

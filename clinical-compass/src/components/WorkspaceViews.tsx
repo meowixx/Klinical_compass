@@ -30,6 +30,7 @@ import type {
 } from "@/types";
 import { formatDate, repository } from "@/services";
 import { useApp } from "./AppContext";
+import { DraftVerification } from "./DraftVerification";
 import { MedicationReviewForm } from "./MedicationReviewForm";
 import { Avatar, Badge, Empty, InfoNote, SearchField, SourceLink } from "./ui";
 
@@ -548,6 +549,10 @@ export function AiAssistant() {
                   onChange={(e) => setDraft(e.target.value)}
                   rows={8}
                 />
+                <DraftVerification
+                  verification={recommendation.verification}
+                  edited={Boolean(draft) && draft !== recommendation.text}
+                />
                 <h4>Использованные данные</h4>
                 <p>{recommendation.data}</p>
                 <h4>Факторы для проверки</h4>
@@ -596,6 +601,18 @@ export function AiAssistant() {
             <BookOpen size={19} />
             Источники
           </h3>
+          {recommendation?.verification?.citations.map((citation) => (
+            <div className="source-card" key={citation.url}>
+              <span>КЛИНИЧЕСКИЕ РЕКОМЕНДАЦИИ</span>
+              <strong>{citation.title}</strong>
+              <small>
+                Страница {citation.page}
+                {citation.recommendationLevel && <> · уровень {citation.recommendationLevel}</>}
+              </small>
+              <small className="source-quote">{citation.quote}</small>
+              <SourceLink url={citation.url}>Открыть страницу КР</SourceLink>
+            </div>
+          ))}
           {(recommendation?.sourceIds || ["doc1", "doc2"]).map((id) => {
             const d = data.documents.find((x) => x.id === id);
             return d ? (

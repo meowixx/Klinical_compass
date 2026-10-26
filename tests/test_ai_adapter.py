@@ -115,7 +115,7 @@ def test_missing_measurements_are_not_converted_to_zero_in_fallback(monkeypatch)
     monkeypatch.setattr(api, "assess_partner_medication", lambda *args: {})
     monkeypatch.setattr(api, "generate_with_qwen", lambda kind, context, assessment, fallback: (fallback, "rules"))
     patient = SimpleNamespace(id="synthetic", birth_date=date(1990, 1, 1), sex="female", diagnosis_code=None, diagnosis_title=None)
-    text, _, _ = api.generate_ai_text(db, patient, "summary")
+    text, *_ = api.generate_ai_text(db, patient, "summary")
     assert "Нет пар заполненных показателей" in text
     assert "-7" not in text
 

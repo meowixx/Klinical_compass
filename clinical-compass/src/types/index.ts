@@ -258,6 +258,54 @@ export interface AiStatus {
   available: boolean;
   message: string;
 }
+export interface GuidelineCitation {
+  docId: string;
+  title: string;
+  page: number;
+  url: string;
+  quote: string;
+  recommendationLevel: "A" | "B" | "C" | null;
+}
+export interface DrugExcerpt extends GuidelineCitation {
+  offLabel: boolean;
+  appliesTo: string;
+}
+export interface RegistryEntry {
+  tradeName: string;
+  registrationNumber: string;
+  registeredAt: string;
+  validUntil: string;
+  active: boolean;
+}
+export interface MedicationCheck {
+  name: string;
+  drugClass: string | null;
+  registry: {
+    status: "active" | "expired" | "not_found";
+    activeCount: number;
+    totalCount: number;
+    entries: RegistryEntry[];
+    searchUrl: string;
+  };
+  dosing: DrugExcerpt[];
+  contraindications: DrugExcerpt[];
+  patientConflicts: string[];
+  instructionCheckRequired: boolean;
+}
+export interface StatementCheck {
+  text: string;
+  status: "supported" | "patient_data" | "unverified";
+  citation?: GuidelineCitation;
+}
+export interface AiVerification {
+  checkedAt: string;
+  guideline: { docId: string; title: string; url: string } | null;
+  citations: GuidelineCitation[];
+  statements: StatementCheck[];
+  medications: MedicationCheck[];
+  warnings: string[];
+  limitations: string;
+}
 export interface AiRecommendation {
   id: string;
   patientId: string;
@@ -267,6 +315,7 @@ export interface AiRecommendation {
   risks: string;
   limitations: string;
   sourceIds: string[];
+  verification?: AiVerification | null;
   createdAt: string;
   status: "draft" | "accepted" | "rejected";
 }
