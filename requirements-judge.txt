@@ -1,0 +1,16 @@
+# Judge (verification of AI drafts against clinical guidelines). Install on top of requirements.txt.
+# CPU build of torch (works everywhere; a GPU build is picked up automatically if installed instead):
+#   pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+torch==2.14.1
+transformers==5.20.2
+sentence-transformers==6.2.0
+huggingface-hub==2.3.0
+tokenizers==0.23.3
+sentencepiece==0.2.2
+protobuf==7.36.2
+numpy==2.5.4
+rank-bm25==0.2.2
+pymorphy3==2.0.6
+pymorphy3-dicts-ru==2.4.417150.4580142
+rapidfuzz==3.14.6
+pypdf==6.21.2

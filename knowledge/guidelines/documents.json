@@ -1,0 +1,141 @@
+[
+ {
+  "doc_id": "162_3",
+  "title": "Головная боль напряжения (ГБН)",
+  "icd": [
+   "G44",
+   "G44.2",
+   "G44.3",
+   "G44.4",
+   "G44.8",
+   "G90.8"
+  ],
+  "version": 3,
+  "created": "2024-10-28T09:09:07.133",
+  "view_url": "https://cr.minzdrav.gov.ru/view-cr/162_3",
+  "pdf_url": "https://apicr.minzdrav.gov.ru/API.ashx?op=GetClinrecPdf&id=162_3"
+ },
+ {
+  "doc_id": "190_2",
+  "title": "Синдром раздраженного кишечника",
+  "icd": [
+   "K58.0",
+   "K58.1",
+   "K58.2",
+   "K58.3",
+   "K58.8",
+   "K58.9"
+  ],
+  "version": 2,
+  "created": "2021-06-24T16:06:50.52",
+  "view_url": "https://cr.minzdrav.gov.ru/view-cr/190_2",
+  "pdf_url": "https://apicr.minzdrav.gov.ru/API.ashx?op=GetClinrecPdf&id=190_2"
+ },
+ {
+  "doc_id": "295_4",
+  "title": "Мигрень",
+  "icd": [
+   "G43",
+   "G43.0",
+   "G43.1",
+   "G43.2",
+   "G43.3",
+   "G43.8",
+   "G43.9",
+   "G44.0",
+   "G44.1",
+   "G44.4"
+  ],
+  "version": 4,
+  "created": "2024-10-25T10:17:50.903",
+  "view_url": "https://cr.minzdrav.gov.ru/view-cr/295_4",
+  "pdf_url": "https://apicr.minzdrav.gov.ru/API.ashx?op=GetClinrecPdf&id=295_4"
+ },
+ {
+  "doc_id": "301_3",
+  "title": "Депрессивный эпизод, Рекуррентное депрессивное расстройство",
+  "icd": [
+   "F32",
+   "F33"
+  ],
+  "version": 3,
+  "created": "2024-08-26T09:56:37.817",
+  "view_url": "https://cr.minzdrav.gov.ru/view-cr/301_3",
+  "pdf_url": "https://apicr.minzdrav.gov.ru/API.ashx?op=GetClinrecPdf&id=301_3"
+ },
+ {
+  "doc_id": "456_3",
+  "title": "Паническое расстройство",
+  "icd": [
+   "F41.0"
+  ],
+  "version": 3,
+  "created": "2024-09-19T10:05:29.337",
+  "view_url": "https://cr.minzdrav.gov.ru/view-cr/456_3",
+  "pdf_url": "https://apicr.minzdrav.gov.ru/API.ashx?op=GetClinrecPdf&id=456_3"
+ },
+ {
+  "doc_id": "457_3",
+  "title": "Генерализованное тревожное расстройство",
+  "icd": [
+   "F41.1"
+  ],
+  "version": 3,
+  "created": "2024-09-18T09:34:58.673",
+  "view_url": "https://cr.minzdrav.gov.ru/view-cr/457_3",
+  "pdf_url": "https://apicr.minzdrav.gov.ru/API.ashx?op=GetClinrecPdf&id=457_3"
+ },
+ {
+  "doc_id": "617_5",
+  "title": "Когнитивные расстройства у лиц пожилого и старческого возраста",
+  "icd": [
+   "F00",
+   "F01",
+   "F02",
+   "F03",
+   "F06.7",
+   "G30",
+   "G31",
+   "I67",
+   "I68",
+   "I69"
+  ],
+  "version": 5,
+  "created": "2024-10-11T12:24:55.22",
+  "view_url": "https://cr.minzdrav.gov.ru/view-cr/617_5",
+  "pdf_url": "https://apicr.minzdrav.gov.ru/API.ashx?op=GetClinrecPdf&id=617_5"
+ },
+ {
+  "doc_id": "675_2",
+  "title": "Биполярное аффективное расстройство",
+  "icd": [
+   "F31"
+  ],
+  "version": 2,
+  "created": "2025-07-16T15:08:54.03",
+  "view_url": "https://cr.minzdrav.gov.ru/view-cr/675_2",
+  "pdf_url": "https://apicr.minzdrav.gov.ru/API.ashx?op=GetClinrecPdf&id=675_2"
+ },
+ {
+  "doc_id": "753_1",
+  "title": "Посттравматическое стрессовое расстройство",
+  "icd": [
+   "F43.1"
+  ],
+  "version": 1,
+  "created": "2023-02-28T15:42:03.193",
+  "view_url": "https://cr.minzdrav.gov.ru/view-cr/753_1",
+  "pdf_url": "https://apicr.minzdrav.gov.ru/API.ashx?op=GetClinrecPdf&id=753_1"
+ },
+ {
+  "doc_id": "880_1",
+  "title": "Отравление психотропными средствами, не классифицированное в других рубриках",
+  "icd": [
+   "T43"
+  ],
+  "version": 1,
+  "created": "2024-12-25T11:39:01.433",
+  "view_url": "https://cr.minzdrav.gov.ru/view-cr/880_1",
+  "pdf_url": "https://apicr.minzdrav.gov.ru/API.ashx?op=GetClinrecPdf&id=880_1"
+ }
+]

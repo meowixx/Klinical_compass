@@ -47,3 +47,6 @@ clinical-compass/.playwright-mcp/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Judge: raw API answers are re-downloaded by scripts/build_guidelines.py
+knowledge/guidelines/raw/

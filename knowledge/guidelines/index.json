@@ -1,0 +1,6 @@
+{
+ "model": "BAAI/bge-m3",
+ "dimensions": 1024,
+ "chunks": 2428,
+ "fingerprint": "3a6b790636fcdc8a"
+}
