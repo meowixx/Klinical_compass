@@ -8,6 +8,7 @@ config/ai_runtime.local.json
 # Python
 .venv/
 .venv-training/
+.venv-ai/
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -24,6 +25,8 @@ tmp/
 training/cache/
 training/runs/
 training/logs/
+models/
+data/ai_judge/
 
 # Frontend build and test output
 clinical-compass/node_modules/

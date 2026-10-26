@@ -1,0 +1,13 @@
+.git
+.venv
+.venv-training
+.venv-ai
+models
+reference_data
+data
+training/cache
+training/runs
+clinical-compass/node_modules
+clinical-compass/.next
+**/__pycache__
+*.pyc

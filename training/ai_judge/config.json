@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "minimumRetrievalRecallAt5": 0.9,
+  "minimumRedFlagRecall": 1.0,
+  "maximumAcceptedFakeQuotes": 0,
+  "requireClinicianReviewForTraining": true
+}

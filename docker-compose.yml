@@ -5,7 +5,9 @@ services:
       DATABASE_URL: sqlite:////app/data/clinical_compass.db
       JWT_SECRET: local-development-secret-change-me
       FRONTEND_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,http://localhost:3125,http://127.0.0.1:3125
+      GRLS_REGISTRY_PATH: /reference_data/Svedeniya_GRLS_127_UTF_8.json
     ports:
       - "8000:8000"
     volumes:
       - ./data:/app/data
+      - ./reference_data:/reference_data:ro

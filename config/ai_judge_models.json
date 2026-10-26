@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "ollama": {
+    "complaintExtractor": "qwen3:4b-instruct",
+    "embeddings": "bge-m3"
+  },
+  "huggingFace": {
+    "reranker": {
+      "id": "BAAI/bge-reranker-v2-m3",
+      "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+      "license": "Apache-2.0",
+      "path": "models/bge-reranker-v2-m3"
+    },
+    "nli": {
+      "id": "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
+      "revision": "b5113eb38ab63efdd7f280f8c144ea8b13f978ce",
+      "license": "MIT",
+      "path": "models/mdeberta-v3-nli"
+    }
+  },
+  "retrieval": {
+    "rrfK": 60,
+    "candidateLimit": 20,
+    "resultLimit": 3,
+    "rerankerThreshold": 0.45
+  },
+  "judge": {
+    "quoteSimilarityThreshold": 90,
+    "nliContradictionThreshold": 0.7,
+    "nliNeutralWarningThreshold": 0.55,
+    "rejectWholeAnswerRatio": 0.5
+  }
+}

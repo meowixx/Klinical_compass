@@ -1,12 +1,26 @@
 {
   "adapterSha256": "6bd768e0191da09a3b7e116b821dafaaed81170dfc4bfc70bf0f781f3172d920",
-  "engineeringDeploymentApproved": true,
+  "engineeringDeploymentApproved": false,
   "clinicalApproval": false,
   "scope": "Hackathon prototype. Drafts are shown only to an authenticated clinician and require explicit clinician confirmation.",
-  "decision": "Enabled by the project owner after held-out comparison. Deterministic medication eligibility and output guards remain mandatory.",
+  "decision": "Blocked after the reproducible held-out engineering check. The adapter passed the partner-medication mention rule in 7 of 18 cases and the clarification rule in 17 of 18 cases. It remains available only as a local training artifact until a new independent evaluation and clinician review are complete.",
+  "evaluation": {
+    "run": "training/runs/20261026-221235-24592",
+    "caseCount": 18,
+    "baselineValidationLoss": 2.9942362308502197,
+    "finalValidationLoss": 2.7266368865966797,
+    "adapterChecks": {
+      "notTruncated": "18/18",
+      "partnerMedicationMention": "7/18",
+      "noInternalReasoning": "18/18",
+      "urgency": "15/18",
+      "clarification": "17/18"
+    }
+  },
   "knownLimitations": [
     "The small synthetic dataset does not establish clinical accuracy.",
     "The model can misread individual fields; the application computes medication eligibility outside the model.",
-    "Generated text is a draft and must not be sent to a patient or treated as a prescription."
+    "Generated text is a draft and must not be sent to a patient or treated as a prescription.",
+    "The inspected test set must not be reused as a fresh independent holdout after further tuning."
   ]
 }

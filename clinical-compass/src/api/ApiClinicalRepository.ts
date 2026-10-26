@@ -45,6 +45,9 @@ export class ApiClinicalRepository implements ClinicalRepository {
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
     if (!res.ok) {
+      if (res.status === 401 && typeof window !== "undefined") {
+        window.dispatchEvent(new Event("cc-auth-required"));
+      }
       let detail = "";
       try {
         const payload = (await res.json()) as { detail?: unknown };

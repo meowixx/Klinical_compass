@@ -1,10 +1,11 @@
 """Grounds AI drafts in Minzdrav clinical guidelines (КР) and the state drug register (ГРЛС).
 
 The checker never generates medical content. Every dose, contraindication or registration it
-returns is a verbatim excerpt from the datasets in knowledge_database_RAG, with its source link.
+returns is a verbatim excerpt from the guideline and registry datasets, with its source link.
 """
 import json
 import math
+import os
 import re
 from collections import Counter
 from datetime import date, datetime
@@ -14,7 +15,8 @@ from typing import Any
 
 KB_DIR = Path(__file__).resolve().parent / "knowledge_database_RAG"
 GUIDELINES_PATH = KB_DIR / "clinical_guidelines_clean.json"
-REGISTRY_PATH = KB_DIR / "Svedeniya_GRLS_127_UTF_8.json"
+DEFAULT_REGISTRY_PATH = Path(__file__).resolve().parent.parent / "reference_data" / "Svedeniya_GRLS_127_UTF_8.json"
+REGISTRY_PATH = Path(os.getenv("GRLS_REGISTRY_PATH", str(DEFAULT_REGISTRY_PATH)))
 GRLS_SEARCH_URL = "https://grls.rosminzdrav.ru/GRLS.aspx"
 
 # ICD-10 prefix -> guideline doc_id from the dataset.
