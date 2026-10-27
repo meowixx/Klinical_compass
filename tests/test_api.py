@@ -42,6 +42,33 @@ def test_patient_dashboard_contains_only_linked_patient():
         assert data["audit"] == []
 
 
+def test_partner_demo_patient_is_linked_to_elena_and_passes_formal_gate():
+    with TestClient(app) as client:
+        login = client.post("/api/v1/auth/login", json={"login": "Persent", "password": "Admin321"})
+        assert login.status_code == 200
+        dashboard = client.get("/api/v1/doctor/dashboard").json()
+        patient = next(item for item in dashboard["patients"] if item["id"] == "p5")
+        assert patient["name"] == "Александр В."
+        assert patient["doctor"] == "Елена Смирнова"
+        review = client.get("/api/v1/patients/p5/medication-review").json()
+        assert review["diagnosisConfirmed"] is True
+        assert review["firstTwoLinesRefractory"] is True
+        assert review["contraindicationsReviewed"] is True
+        answer = client.post("/api/v1/ai/recommendation", json={"patientId": "p5", "kind": "medication"})
+        assert answer.status_code == 200
+        assert "Можно рассмотреть после полной проверки врачом" in answer.json()["text"]
+        assert "Авиандр / маритупирдин" in answer.json()["text"]
+
+        client.post("/api/v1/auth/logout")
+        patient_login = client.post(
+            "/api/v1/auth/login",
+            json={"login": "PartnerPatient", "password": "Partner2026!"},
+        )
+        assert patient_login.status_code == 200
+        patient_dashboard = client.get("/api/v1/dashboard").json()
+        assert [item["id"] for item in patient_dashboard["patients"]] == ["p5"]
+
+
 def test_red_alert_requires_documented_action_to_close():
     with TestClient(app) as client:
         client.post("/api/v1/auth/login", json={"login": "Persent", "password": "Admin321"})

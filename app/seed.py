@@ -14,6 +14,109 @@ from app.models import (
 from app.security import hash_password
 
 DEMO_NOW = datetime(2026, 10, 16, 12, 0)
+PARTNER_PATIENT_ID = "p5"
+PARTNER_PATIENT_USER_ID = "patient-partner-demo"
+
+
+def seed_partner_demo_patient(db: Session) -> None:
+    """Create the opt-in demo case that satisfies every formal partner-medication gate."""
+    doctor = db.get(User, "doctor-demo")
+    if not doctor:
+        return
+    user = db.get(User, PARTNER_PATIENT_USER_ID)
+    if not user:
+        user = User(
+            id=PARTNER_PATIENT_USER_ID,
+            login="PartnerPatient",
+            email="partner.patient@clinical-compass.local",
+            phone="+79990000005",
+            password_hash=hash_password("Partner2026!"),
+            role="patient",
+            name="Александр В.",
+        )
+        db.add(user)
+        db.flush()
+
+    patient = db.get(PatientProfile, PARTNER_PATIENT_ID)
+    if not patient:
+        patient = PatientProfile(
+            id=PARTNER_PATIENT_ID,
+            user_id=user.id,
+            doctor_id=doctor.id,
+            display_name="Александр В.",
+            birth_date=date(1988, 5, 14),
+            sex="М",
+            card="КК-2026-005",
+            diagnosis_code="F41.1",
+            diagnosis_title="Генерализованное тревожное расстройство",
+            complaint="Сохраняющаяся тревога при ранее проверенных вариантах терапии.",
+            color="#dce7f7",
+            last_contact=DEMO_NOW,
+        )
+        db.add(patient)
+        db.flush()
+
+    # These fields are deliberately explicit so the UI can demonstrate the positive gate.
+    patient.user_id = user.id
+    patient.doctor_id = doctor.id
+    patient.diagnosis_code = "F41.1"
+    patient.diagnosis_title = "Генерализованное тревожное расстройство"
+    patient.diagnosis_status = "confirmed"
+    patient.first_two_lines_refractory = True
+    patient.contraindications_reviewed = True
+    patient.safety_reviewed_at = DEMO_NOW
+    patient.medication_restrictions_json = "{}"
+
+    relationship = db.scalar(
+        select(CareRelationship).where(
+            CareRelationship.doctor_id == doctor.id,
+            CareRelationship.patient_id == patient.id,
+        )
+    )
+    if not relationship:
+        db.add(CareRelationship(id="care-partner-demo", doctor_id=doctor.id, patient_id=patient.id))
+
+    if not db.scalar(select(DailyCheckin).where(DailyCheckin.patient_id == patient.id)):
+        for day in range(7):
+            db.add(
+                DailyCheckin(
+                    id=f"checkin-partner-{day + 1}",
+                    patient_id=patient.id,
+                    reported_at=DEMO_NOW - timedelta(days=6 - day),
+                    anxiety=6.0 - day * 0.15,
+                    mood=6.0 + day * 0.1,
+                    sleep_minutes=420 + day * 5,
+                    sleep_quality="хорошо",
+                    functioning="немного",
+                    source="patient_self_report",
+                    completeness=1.0,
+                )
+            )
+
+    prescription = db.get(Prescription, "rx-partner-demo")
+    if not prescription:
+        prescription = Prescription(
+            id="rx-partner-demo",
+            patient_id=patient.id,
+            medication_name="Текущая поддерживающая терапия",
+            regimen="По ранее назначенной врачом схеме",
+            started_on=date(2026, 9, 16),
+            ended_on=date(2026, 11, 16),
+        )
+        db.add(prescription)
+        db.flush()
+    if not db.scalar(select(TherapyIntake).where(TherapyIntake.prescription_id == prescription.id)):
+        for dose in range(14):
+            scheduled = DEMO_NOW - timedelta(hours=(13 - dose) * 12)
+            db.add(
+                TherapyIntake(
+                    id=f"intake-partner-{dose + 1}",
+                    prescription_id=prescription.id,
+                    scheduled_at=scheduled,
+                    status="taken",
+                    reported_at=scheduled + timedelta(minutes=10),
+                )
+            )
 
 
 def seed_questionnaire_library(db: Session) -> None:
@@ -227,6 +330,7 @@ def seed_database(db: Session) -> None:
                 user.email = user.email or email
                 user.phone = user.phone or phone
         normalize_existing_labels(db)
+        seed_partner_demo_patient(db)
         for alert in db.scalars(select(ClinicalAlert).where(ClinicalAlert.responsible_doctor_id.is_(None))):
             patient = db.get(PatientProfile, alert.patient_id)
             if patient:
@@ -440,6 +544,7 @@ def seed_database(db: Session) -> None:
             ),
         ]
     )
+    seed_partner_demo_patient(db)
     seed_questionnaire_library(db)
     seed_daily_assignments(db)
     seed_legal_documents(db)

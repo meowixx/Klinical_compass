@@ -22,6 +22,7 @@ FastAPI и Swagger: http://127.0.0.1:8000/docs
 | Администратор | `Admin` | `AdminAIMPY` |
 | Врач | `Persent` | `Admin321` |
 | Пациент | `Doctor` | `Admin241` |
+| Пациент с выполненными критериями проверки препарата партнёра | `PartnerPatient` | `Partner2026!` |
 
 Все стартовые сведения вымышлены и хранятся только в локальном файле `data/clinical_compass.db`.
 
