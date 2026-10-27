@@ -546,7 +546,7 @@ export class MockClinicalRepository implements ClinicalRepository {
         status: "draft",
       };
       data.recommendations.unshift(result);
-      this.audit(data, "Сформирован ИИ-черновик", p.id);
+      this.audit(data, "Сформирован ответ ИИ-консилиума", p.id);
       return result;
     });
   }
@@ -565,7 +565,7 @@ export class MockClinicalRepository implements ClinicalRepository {
       Object.assign(r, { text, status });
       this.audit(
         data,
-        `${status === "accepted" ? "Врач подтвердил собственное решение" : status === "rejected" ? "ИИ-черновик отклонён" : "ИИ-черновик отредактирован"}`,
+        `${status === "accepted" ? "Врач проверил ответ ИИ-консилиума" : status === "rejected" ? "Ответ ИИ-консилиума не использован" : "Текст ответа обновлён"}`,
         r.patientId,
       );
       return true;

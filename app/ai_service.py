@@ -45,6 +45,14 @@ TASKS = {
 }
 
 
+def plain_text_response(value: str) -> str:
+    """Remove common Markdown decoration from text shown in the editable clinical UI."""
+    value = re.sub(r"(?m)^[ \t]{0,3}#{1,6}[ \t]+", "", value)
+    value = re.sub(r"\*\*(.+?)\*\*|__(.+?)__", lambda match: match.group(1) or match.group(2), value)
+    value = re.sub(r"(?m)^\s*[-*]\s+", "• ", value)
+    return re.sub(r"\n{3,}", "\n\n", value).strip()
+
+
 def ai_status() -> dict[str, Any]:
     runtime = runtime_settings()
     if runtime.get("blocked"):
@@ -189,6 +197,7 @@ def generate_with_qwen(
         content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
         if "</think>" in content:
             content = content.split("</think>", 1)[1].strip()
+        content = plain_text_response(content)
         if not content and message.get("thinking"):
             return fallback, "Qwen не вернул итоговый текст; использован структурированный расчёт"
         reason = rejected_output(content, medication_assessment)

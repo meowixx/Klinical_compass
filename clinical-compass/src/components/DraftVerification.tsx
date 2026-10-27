@@ -95,7 +95,7 @@ function MedicationCard({ medication }: { medication: MedicationCheck }) {
 
 export function DraftVerification({ verification, edited }: { verification?: AiVerification | null; edited: boolean }) {
   if (!verification) {
-    return <InfoNote>Проверка по клиническим рекомендациям и ГРЛС для этого черновика недоступна.</InfoNote>;
+    return <InfoNote>Проверка по клиническим рекомендациям и ГРЛС для этого ответа недоступна.</InfoNote>;
   }
   const statementIcons = {
     supported: <CircleCheck size={16} />,
@@ -108,11 +108,11 @@ export function DraftVerification({ verification, edited }: { verification?: AiV
     unverified: "Нет подтверждения в КР",
   };
   return (
-    <section className="kb-check" aria-label="Проверка черновика по базе знаний">
+    <section className="kb-check" aria-label="Проверка ответа по базе знаний">
       <h4>Проверка по клиническим рекомендациям и ГРЛС</h4>
       {edited && (
         <p className="kb-edited">
-          Проверка относится к сохранённому тексту. Сохраните правки, чтобы проверить черновик заново.
+          Проверка относится к сохранённому тексту. Сохраните правки, чтобы проверить ответ заново.
         </p>
       )}
       {verification.guideline && (
@@ -136,7 +136,7 @@ export function DraftVerification({ verification, edited }: { verification?: AiV
       ))}
       {verification.statements.length > 0 && (
         <>
-          <h5>Проверка утверждений черновика</h5>
+          <h5>Проверка утверждений ответа</h5>
           <ul className="kb-statements">
             {verification.statements.map((statement, index) => (
               <li key={index} className={statement.status}>

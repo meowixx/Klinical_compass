@@ -37,7 +37,7 @@ export function MedicationReviewForm({ patientId }: { patientId: string }) {
       <label className="check-label"><input type="checkbox" checked={review.contraindicationsReviewed} onChange={e => update({ contraindicationsReviewed: e.target.checked })} /><span>Проверены противопоказания, аллергии, взаимодействия, беременность и кормление, функция почек и печени</span></label>
       <label>Выявленные ограничения<textarea rows={3} value={review.restrictions} maxLength={2000} onChange={e => update({ restrictions: e.target.value })} placeholder="Каждое ограничение с новой строки. Оставьте пустым, только если ограничений не выявлено." /></label>
       <div className="ai-actions"><button type="button" className="outline" onClick={save}>{busy ? "Сохранение…" : "Сохранить проверку"}</button></div>
-      <p role="status">{saved ? "Проверка сохранена. Теперь можно сформировать новый черновик." : review.reviewedAt ? `Последняя проверка: ${formatDate(review.reviewedAt, true)}` : "Проверка противопоказаний ещё не подтверждена."}</p>
+      <p role="status">{saved ? "Проверка сохранена. Теперь можно запросить новый ответ консилиума." : review.reviewedAt ? `Последняя проверка: ${formatDate(review.reviewedAt, true)}` : "Проверка противопоказаний ещё не подтверждена."}</p>
     </fieldset>}
   </details>;
 }

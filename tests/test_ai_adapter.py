@@ -4,6 +4,24 @@ import pytest
 from app import ai_service as ai
 
 
+def test_model_markdown_is_converted_to_plain_clinical_text():
+    text = ai.plain_text_response("**Изменения:**\n- Проверить данные\n\n\n## Ограничения")
+    assert text == "Изменения:\n• Проверить данные\n\nОграничения"
+
+
+def test_medication_consultation_uses_clear_localized_status():
+    from app.api import format_medication_consultation
+    text = format_medication_consultation({
+        "status": "not_indicated",
+        "details": "Диагноз пациента не соответствует показаниям карточки.",
+        "disclosure": "Препарат представлен партнёром проекта.",
+    })
+    assert "Не соответствует настроенным показаниям" in text
+    assert "not_indicated" not in text
+    assert "**" not in text
+    assert "лекарственное предложение для указанного диагноза не сформировано" in text
+
+
 def test_runtime_uses_local_authenticated_adapter(tmp_path, monkeypatch):
     monkeypatch.setattr(ai, "BASE_DIR", tmp_path)
     profile = tmp_path / "runtime.json"

@@ -488,6 +488,41 @@ def verify_ai_text(text: str, context: dict) -> dict | None:
         return None
 
 
+MEDICATION_STATUS_LABELS = {
+    "not_configured": "Карточка препарата не настроена",
+    "contraindicated": "Выявлено ограничение",
+    "not_indicated": "Не соответствует настроенным показаниям",
+    "requires_data": "Недостаточно данных для проверки",
+    "eligible_for_review": "Можно рассмотреть после полной проверки врачом",
+}
+
+
+def format_medication_consultation(assessment: dict) -> str:
+    """Present the deterministic medication gate without asking the language model to reinterpret it."""
+    status = str(assessment.get("status", "not_configured"))
+    label = MEDICATION_STATUS_LABELS.get(status, "Требуется проверка")
+    lines = [
+        "Результат формальной проверки карточки препарата",
+        f"Статус: {label}.",
+        f"Основание: {assessment.get('details', 'Нет данных для проверки.')}",
+    ]
+    if status == "eligible_for_review":
+        lines.append(
+            f"Возможное действие: врач может рассмотреть {assessment.get('title', 'препарат')} "
+            "после проверки актуальной инструкции, противопоказаний, взаимодействий и обследований."
+        )
+    elif status == "requires_data":
+        lines.append("Следующий шаг: заполнить недостающие сведения и повторить формальную проверку.")
+    elif status == "not_indicated":
+        lines.append("Вывод: лекарственное предложение для указанного диагноза не сформировано.")
+    elif status == "contraindicated":
+        lines.append("Вывод: препарат не предлагается; выявленные ограничения должен оценить врач.")
+    else:
+        lines.append("Вывод: лекарственное предложение не сформировано.")
+    lines.append(f"Партнёрская связь: {assessment.get('disclosure', 'Не указана.')}")
+    return "\n\n".join(lines)
+
+
 def generate_ai_text(db: Session, patient: PatientProfile, kind: str) -> tuple[str, str, str, dict | None]:
     context, checkins, counts, event = patient_ai_context(db, patient)
     change = "Недостаточно последовательных записей для сравнения."
@@ -526,19 +561,16 @@ def generate_ai_text(db: Session, patient: PatientProfile, kind: str) -> tuple[s
         fallback = "Черновик записи врача по самоотчётам пациента:\n" + fallback
     elif kind == "changes":
         fallback = f"Изменения по двум последним самоотчётам: {change}\nДата последней записи: {checkins[0].reported_at.isoformat() if checkins else 'нет данных'}. Данные требуют сопоставления с текущим состоянием."
-    text, model_note = generate_with_qwen(kind, context, medication, fallback)
-    if medication.get("status") == "eligible_for_review" and "авиандр" not in text.casefold():
-        text += (
-            "\n\nВозможное действие: врач может рассмотреть Авиандр (маритупирдин) после проверки "
-            "актуальной инструкции и взаимодействий. Препарат партнёра; решение принимает врач."
-        )
     if kind == "medication":
-        text = (
-            f"Формальная проверка: {medication['title']}\n"
-            f"Статус: {medication['status']}\n"
-            f"Результат: {medication['details']}\n"
-            f"Раскрытие: {medication['disclosure']}\n\n{text}"
-        )
+        text = format_medication_consultation(medication)
+        model_note = "формальная проверка выполнена детерминированными правилами без генерации модели"
+    else:
+        text, model_note = generate_with_qwen(kind, context, medication, fallback)
+        if medication.get("status") == "eligible_for_review" and "авиандр" not in text.casefold():
+            text += (
+                "\n\nВозможное действие: врач может рассмотреть Авиандр (маритупирдин) после проверки "
+                "актуальной инструкции и взаимодействий. Препарат партнёра; решение принимает врач."
+            )
     verification = verify_ai_text(text, context)
     check_note = (
         f" Проверка по базе знаний: ссылок на КР — {len(verification['citations'])}, препаратов в тексте — {len(verification['medications'])}."
@@ -603,12 +635,12 @@ def generate_ai(payload: AiRequest, user: User = Depends(require_doctor), db: Se
         text=text,
         data=data,
         risks=risks,
-        limitations="Локальный ИИ-черновик. Не является диагнозом или назначением. Медицинские и партнёрские предложения требуют проверки врачом по официальной инструкции.",
+        limitations="Локальный ответ ИИ-консилиума. Не является диагнозом или назначением. Медицинские и партнёрские предложения требуют проверки врачом по официальной инструкции.",
         source_ids="doc1,doc2",
         verification_json=json.dumps(verification or {}, ensure_ascii=False),
     )
     db.add(item)
-    audit(db, user.name, "Сформирован структурированный ИИ-черновик", patient.id)
+    audit(db, user.name, "Сформирован ответ ИИ-консилиума", patient.id)
     db.commit()
     return {
         "id": item.id,
@@ -638,7 +670,7 @@ def update_ai(item_id: str, payload: AiUpdate, user: User = Depends(require_doct
         # The doctor may add or change a drug while editing; the check must describe the saved text.
         item.verification_json = json.dumps(verify_ai_text(text, patient_ai_context(db, patient)[0]) or {}, ensure_ascii=False)
     item.text, item.status = text, payload.status
-    audit(db, user.name, f"Статус ИИ-черновика: {payload.status}", item.patient_id)
+    audit(db, user.name, f"Статус ответа ИИ-консилиума: {payload.status}", item.patient_id)
     db.commit()
 
 

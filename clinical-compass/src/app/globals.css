@@ -372,6 +372,7 @@ input[type="checkbox"]:not(.switch-control):checked{
 .kb-statements li.unverified svg { color: #d8891e; }
 .kb-statements li.patient_data svg { color: var(--muted); }
 .source-quote { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.ai-consultation-text { min-height: 150px; white-space: pre-wrap; border: 1px solid #dce4f3; border-radius: 10px; padding: 14px; background: white; color: #20345e; line-height: 1.65; }
 @media (max-width: 480px) {
   .kb-registry li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .kb-status { margin-left: 0; }

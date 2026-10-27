@@ -366,6 +366,14 @@ const aiActions = [
   ["note", "Подготовить черновик записи"],
   ["questions", "Вопросы к следующему визиту"],
 ];
+function consultationText(value: string) {
+  return value
+    .replace(/^[ \t]{0,3}#{1,6}[ \t]+/gm, "")
+    .replace(/\*\*(.+?)\*\*|__(.+?)__/g, (_, bold: string, underline: string) => bold || underline)
+    .replace(/^\s*[-*]\s+/gm, "• ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
 export function AiAssistant() {
   const { data, selectedId, run, busy, toast } = useApp();
   const [patientId, setPatientId] = useState(
@@ -395,12 +403,13 @@ export function AiAssistant() {
     data.recommendations.find((r) => r.patientId === patientId);
   const [draft, setDraft] = useState("");
   const currentText = draft || recommendation?.text || "";
+  const isClinicalNote = recommendation?.kind === "note";
   async function generate() {
     setConfirm(false);
     let created: AiRecommendation | undefined;
     const ok = await run(async () => {
       created = await repository().generateAi({ patientId, kind });
-    }, "Черновик готов");
+    }, "Ответ ИИ-консилиума готов");
     if (ok && created) {
       setActiveId(created.id);
       setDraft(created.text);
@@ -422,7 +431,7 @@ export function AiAssistant() {
             status,
             confirm,
           ),
-        status === "accepted" ? "Решение врача сохранено" : "Черновик обновлён",
+        status === "accepted" ? "Проверка врача сохранена" : isClinicalNote ? "Черновик обновлён" : "Ответ обновлён",
       )
     )
       setDraft("");
@@ -431,8 +440,8 @@ export function AiAssistant() {
     <>
       <div className="page-heading ai-page-heading">
         <div>
-          <h1>ИИ-рекомендации</h1>
-          <p>Динамика пациента, факторы для проверки и клинический черновик</p>
+          <h1>ИИ-консилиум</h1>
+          <p>Дополнительный анализ данных пациента для обсуждения с врачом</p>
         </div>
         <span className={`ai-runtime ${aiStatus?.available ? "ready" : "fallback"}`} title={aiStatus?.message}>
           <i />
@@ -443,7 +452,7 @@ export function AiAssistant() {
         <AlertTriangle size={22} />
         <span>
           <strong>
-            ИИ помогает подготовить решение, но не назначает лечение.
+            ИИ помогает проверить данные и подготовить вопросы, но не назначает лечение.
           </strong>{" "}
           Допуск препарата рассчитывается по правилам, решение принимает врач.
         </span>
@@ -451,7 +460,7 @@ export function AiAssistant() {
       <div className="ai-workflow" aria-label="Порядок формирования рекомендации">
         <span>Показатели пациента</span><ArrowRight size={16} />
         <span>Проверка правил</span><ArrowRight size={16} />
-        <span>Черновик Qwen</span><ArrowRight size={16} />
+        <span>Ответ ИИ-консилиума</span><ArrowRight size={16} />
         <span>Решение врача</span>
       </div>
       <div className="ai-layout">
@@ -483,7 +492,7 @@ export function AiAssistant() {
           ) : (
             <Empty
               title="Запросов ещё нет"
-              text="Выберите сценарий и сформируйте черновик."
+              text="Выберите сценарий и запросите консультационный ответ."
             />
           )}
         </aside>
@@ -535,23 +544,29 @@ export function AiAssistant() {
           {recommendation ? (
             <>
               <div className="ai-message user-message">
-                Подготовьте:{" "}
+                Запрос:{" "}
                 {aiActions.find((a) => a[0] === recommendation.kind)?.[1]}
               </div>
               <article className="ai-answer">
                 <div className="answer-label">
                   <Sparkles size={18} />
-                  ИИ-черновик
+                  {isClinicalNote ? "Черновик записи" : "Ответ ИИ-консилиума"}
                 </div>
-                <textarea
-                  aria-label="Текст черновика"
-                  value={currentText}
-                  onChange={(e) => setDraft(e.target.value)}
-                  rows={8}
-                />
+                {isClinicalNote ? (
+                  <textarea
+                    aria-label="Текст черновика записи"
+                    value={currentText}
+                    onChange={(e) => setDraft(e.target.value)}
+                    rows={8}
+                  />
+                ) : (
+                  <div className="ai-consultation-text" aria-label="Ответ ИИ-консилиума">
+                    {consultationText(currentText)}
+                  </div>
+                )}
                 <DraftVerification
                   verification={recommendation.verification}
-                  edited={Boolean(draft) && draft !== recommendation.text}
+                  edited={isClinicalNote && Boolean(draft) && draft !== recommendation.text}
                 />
                 <h4>Использованные данные</h4>
                 <p>{recommendation.data}</p>
@@ -560,16 +575,16 @@ export function AiAssistant() {
                 <h4>Ограничения</h4>
                 <p>{recommendation.limitations}</p>
                 <div className="ai-actions">
-                  <button className="outline" onClick={() => save("draft")}>
+                  {isClinicalNote && <button className="outline" onClick={() => save("draft")}>
                     <Pencil size={16} />
                     Сохранить правки
-                  </button>
+                  </button>}
                   <button
                     className="outline danger-outline"
                     onClick={() => save("rejected")}
                   >
                     <X size={16} />
-                    Отклонить
+                    {isClinicalNote ? "Отклонить" : "Не использовать"}
                   </button>
                 </div>
                 <label className="confirm-box">
@@ -579,20 +594,21 @@ export function AiAssistant() {
                     onChange={(e) => setConfirm(e.target.checked)}
                   />
                   <span>
-                    Я проверил(а) черновик и самостоятельно принял(а)
-                    клиническое решение.
+                    {isClinicalNote
+                      ? "Я проверил(а) запись и самостоятельно принял(а) клиническое решение."
+                      : "Я ознакомился(ась) с ответом и самостоятельно проверил(а) исходные данные."}
                   </span>
                 </label>
                 <button className="primary" onClick={() => save("accepted")}>
                   <Check size={17} />
-                  Подтвердить решение врача
+                  {isClinicalNote ? "Подтвердить запись врача" : "Отметить как проверенный"}
                 </button>
               </article>
             </>
           ) : (
             <Empty
               title="Выберите действие"
-              text="Выберите пациента и нажмите «Сформировать». Локальный Qwen подготовит черновик по данным карточки."
+              text="Выберите пациента и нажмите «Сформировать». Локальный Qwen подготовит консультационный ответ по данным карточки."
             />
           )}
         </main>
